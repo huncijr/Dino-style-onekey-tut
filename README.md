@@ -1,6 +1,8 @@
 # Make the Chrome dino game (but in HTML, from scratch)
 
-You know the game. WiFi dies, Chrome shows you a pixel dinosaur, you press space and jump over cacti until you inevitably eat it. We're gonna build that exact thing — except our "dino" is a red square with derpy eyes because we're keeping it simple. One file, zero installs, open it and play.
+You know the Chrome dino game, the one that shows up when your internet cuts out. You press Space, jump over cacti, and try not to crash. We're making that same game, but our dino is a red square (we're keeping it simple). Everything is one file. No installs. Open it and play.
+
+> **Using VS Code?** Install the **Live Server** extension (Ctrl+Shift+X, search "Live Server", install). Then right-click `index.html` and pick *"Open with Live Server"*. It opens your game at `http://127.0.0.1:5500` and auto-refreshes every time you save. You can also just double-click the file and open it in Chrome, either way works.
 
 ![Full game preview](images/full-game.png)
 
@@ -12,9 +14,9 @@ Three things you need to know. If you already get HTML/Canvas/JS, skip ahead.
 
 **HTML** is just the bones of a webpage. `<canvas>` says "drawing area goes here." `<script>` says "code goes here." That's pretty much it. Our whole dino game lives in one `.html` file.
 
-**Canvas** is a blank rectangle. You draw on it with JavaScript — squares, circles, lines, whatever. Every frame we wipe it clean and paint everything again: sky, ground, our little dino guy, the spike obstacles. Repeat 60 times a second and you've got smooth animation.
+**Canvas** is a blank rectangle. You draw on it with JavaScript, squares, circles, lines, whatever. Every frame we wipe it clean and paint everything again: sky, ground, our little dino guy, the spike obstacles. Repeat 60 times a second and you've got smooth animation.
 
-**JavaScript** makes things move. Gravity pulls the dino down after a jump. Obstacles scroll in from the right. The game checks if you faceplanted into a spike. No build tools, no compilers — the browser just reads and runs it.
+**JavaScript** makes things move. Gravity pulls the dino down after a jump. Obstacles scroll in from the right. The game checks if you faceplanted into a spike. No build tools, no compilers, the browser just reads and runs it.
 
 **Why no `npm install`?** Because we don't need anything from npm. Canvas and JavaScript are built into every browser since like 2005. No dependencies = nothing to install, nothing to break, nothing that randomly stops working because a package author had a bad day. This runs on your phone, your laptop, your grandma's computer.
 
@@ -24,7 +26,7 @@ Three things you need to know. If you already get HTML/Canvas/JS, skip ahead.
 
 The Chrome dino game works like this: the little guy stands still on the left while the world scrolls past him. Cacti (and later pterodactyls) come from the right. You jump over them. Speed ramps up forever until you crash.
 
-We're doing the same thing. Our dino sits at ~12% from the left edge. Everything else — the ground dots, the spike obstacles — moves left. Your brain reads this as "running to the right."
+We're doing the same thing. Our dino sits at ~12% from the left edge. Everything else (the ground dots, the spike obstacles) moves left. Your brain reads this as "running to the right."
 
 ---
 
@@ -77,7 +79,7 @@ resize();
 
 Caps at 800px wide max, keeps a 2:1 ratio. On a phone that's roughly 375×187. On desktop 800×400. Everything else in the game scales off these numbers.
 
-**The game clock.** `requestAnimationFrame` is how browsers do smooth animation. It calls your function right before each screen refresh — about 60 times a second. Better than `setInterval` because it syncs with your actual monitor and pauses when you switch tabs (saving battery, which matters for a dino game you play while waiting for WiFi).
+**The game clock.** `requestAnimationFrame` is how browsers do smooth animation. It calls your function right before each screen refresh, about 60 times a second. Better than `setInterval` because it syncs with your actual monitor and pauses when you switch tabs (saving battery, which matters for a dino game you play while waiting for WiFi).
 
 **Delta time.** Here's the thing that trips up basically everyone: computers don't all run at the same speed. A 144Hz gaming monitor refreshes more than twice as often as a 60Hz office screen. If your dino moves "5 pixels per frame," he'll sprint on one machine and crawl on another.
 
@@ -92,8 +94,8 @@ function gameLoop(timestamp) {
   if (dt > 0.1) dt = 0.1;  // safety cap for tab switches
   lastTime = timestamp;
 
-  // update(dt) goes here — move stuff
-  // draw() goes here — paint stuff
+  // update(dt) goes here, move stuff
+  // draw() goes here, paint stuff
 
   requestAnimationFrame(gameLoop);
 }
@@ -102,6 +104,10 @@ requestAnimationFrame(gameLoop);
 ```
 
 The `dt > 0.1` cap: if you switch tabs and come back 5 seconds later, without this cap the browser dumps a huge `dt` on you and your dino teleports through the floor.
+
+At this point, all you see is sky and ground. The game loop is running but we haven't drawn anything interesting yet:
+
+![Empty canvas with sky and ground](images/empty-canvas.png)
 
 ---
 
@@ -144,7 +150,7 @@ window.addEventListener('resize', () => { resize(); init(); });
 
 On a phone the dino sits at x=45. On desktop at x=96. Always visible, always in roughly the same spot.
 
-The 1800 and -620 numbers aren't sacred — I just messed with them until the jump arc felt like the real Chrome dino. Too much gravity = stubby little hop. Too little = he floats like he's on the moon.
+The 1800 and -620 numbers aren't sacred, I just messed with them until the jump arc felt like the real Chrome dino. Too much gravity = stubby little hop. Too little = he floats like he's on the moon.
 
 ---
 
@@ -175,6 +181,10 @@ The pupils are deliberately off-center. Gives him this slightly unhinged express
 
 ![Player character](images/player.png)
 
+And here he is standing on the ground, waiting for you to press Space:
+
+![Dino standing on ground](images/dino-standing.png)
+
 ---
 
 ## 5. The jump (gravity + launch)
@@ -201,7 +211,9 @@ function update(dt) {
 }
 ```
 
-Gravity is constant acceleration downward (1800 px/s²). The jump force is an instantaneous -620 px/s upward. Together they trace a parabola — same shape as a thrown ball. The dino rises, slows down at the peak, then falls faster and faster until *thud*.
+Gravity is constant acceleration downward (1800 px/s²). The jump force is an instantaneous -620 px/s upward. Together they trace a parabola, same shape as a thrown ball. The dino rises, slows down at the peak, then falls faster and faster until *thud*.
+
+![Dino mid-jump over a spike](images/dino-jumping.png)
 
 ---
 
@@ -218,7 +230,7 @@ ctx.moveTo(0, GROUND_Y);
 ctx.lineTo(canvas.width, GROUND_Y);
 ctx.stroke();
 
-// Scrolling dots (they move left → "the ground is rushing past")
+// Scrolling dots (they move left, "the ground is rushing past")
 ctx.fillStyle = '#5a4a3a';
 const dotOffset = (Date.now() / 10) % 30;
 for (let x = -30 + dotOffset; x < canvas.width + 30; x += 30) {
@@ -230,7 +242,7 @@ ctx.fillStyle = '#c8a96e';
 ctx.fillRect(0, GROUND_Y, canvas.width, canvas.height - GROUND_Y);
 ```
 
-The dots scroll using `Date.now()` which is always ticking, even when the game is paused. It's a tiny detail but it makes the world feel alive. In the real Chrome dino, the ground has little rocks and texture that scroll past — same idea.
+The dots scroll using `Date.now()` which is always ticking, even when the game is paused. It's a tiny detail but it makes the world feel alive. In the real Chrome dino, the ground has little rocks and texture that scroll past, same idea.
 
 ![Background and ground](images/background.png)
 
@@ -253,7 +265,7 @@ The real game has cacti. We've got two kinds of ground spikes, picked randomly:
 
 ![Obstacle types comparison](images/obstacles.png)
 
-They get random heights (25–70px) and random spike counts (1–3). This is important — if every cactus was the same height, you'd find one perfect jump timing and the game would be boring forever:
+They get random heights (25–70px) and random spike counts (1–3). This is important. If every cactus was the same height, you'd find one perfect jump timing and the game would be boring forever:
 
 ```js
 function spawnObstacle() {
@@ -351,7 +363,7 @@ The spike-only type gets a subtle highlight on the left edge of each triangle. M
 
 ## 9. When the dino eats it (collision)
 
-AABB collision — "Axis-Aligned Bounding Box." Two rectangles overlap if all four of these are true:
+AABB collision, "Axis-Aligned Bounding Box." Two rectangles overlap if all four of these are true:
 
 1. A's left edge is left of B's right edge
 2. A's right edge is right of B's left edge  
@@ -367,7 +379,7 @@ function collides(a, b) {
 }
 ```
 
-Four conditions, one `&&`, game over. The Chrome dino uses the exact same math — just checking if the dino's rectangle overlaps a cactus rectangle.
+Four conditions, one `&&`, game over. The Chrome dino uses the exact same math, just checking if the dino's rectangle overlaps a cactus rectangle.
 
 ![AABB collision detection](images/collision.png)
 
@@ -375,14 +387,14 @@ Four conditions, one `&&`, game over. The Chrome dino uses the exact same math �
 
 ## 10. Score, speed, and death
 
-Same scoring as the real game: points tick up over time. Speed increases with score. The ramp is gradual — you don't notice it second to second, but eventually the game becomes impossible:
+Same scoring as the real game: points tick up over time. Speed increases with score. The ramp is gradual, you don't notice it second to second, but eventually the game becomes impossible:
 
 ```js
 score += dt * 10;                  // 10 points per second
 gameSpeed = 350 + score * 0.6;     // speed creeps up
 ```
 
-At score 100: 410 px/s. At 500: 650 px/s. Nearly double. Endless runners always end — the question is how far you get on this run.
+At score 100: 410 px/s. At 500: 650 px/s. Nearly double. Endless runners always end. The question is how far you get on this run.
 
 **Game over and restart:**
 
@@ -395,7 +407,7 @@ function resetGame() {
 }
 ```
 
-**Input — keyboard AND touch, because phones exist:**
+**Input, keyboard AND touch, because phones exist:**
 
 ```js
 function doAction() {
@@ -420,7 +432,9 @@ canvas.addEventListener('click', e => { e.preventDefault(); doAction(); });
 canvas.addEventListener('touchstart', e => { e.preventDefault(); doAction(); });
 ```
 
-One `doAction()` function, three ways to trigger it. The Chrome dino only uses Space and Up — we've added tap because half the world plays on phones.
+One `doAction()` function, three ways to trigger it. The Chrome dino only uses Space and Up, we've added tap because half the world plays on phones.
+
+![Game over screen](images/game-over.png)
 
 ---
 
@@ -549,7 +563,6 @@ function draw() {
   const dotOffset = (Date.now() / 10) % 30;
   for (let x = -30 + dotOffset; x < canvas.width + 30; x += 30) ctx.fillRect(x, GROUND_Y + 3, 10, 3);
 
-  // Sun
   const sunX = canvas.width * 0.82, sunY = canvas.height * 0.18, sunR = canvas.width * 0.06;
   ctx.fillStyle = 'rgba(255,220,100,0.3)';
   ctx.beginPath(); ctx.arc(sunX, sunY, sunR * 1.8, 0, Math.PI * 2); ctx.fill();
@@ -564,7 +577,6 @@ function draw() {
     ctx.stroke();
   }
 
-  // Clouds
   ctx.fillStyle = 'rgba(255,255,255,0.6)';
   const cb = (Date.now()/20000) % (canvas.width+100)-50;
   [cb, cb+canvas.width*0.5].forEach((cx,i) => {
@@ -576,14 +588,12 @@ function draw() {
     ctx.arc(35,5,22,0,Math.PI*2); ctx.fill(); ctx.restore();
   });
 
-  // Dino
   ctx.fillStyle = '#e94560'; ctx.fillRect(player.x, player.y, player.w, player.h);
   ctx.fillStyle = '#fff';
   ctx.fillRect(player.x+10, player.y+12, 12, 12); ctx.fillRect(player.x+28, player.y+12, 12, 12);
   ctx.fillStyle = '#1a1a2e';
   ctx.fillRect(player.x+15, player.y+17, 6, 6); ctx.fillRect(player.x+33, player.y+17, 6, 6);
 
-  // Obstacles
   for (const obs of obstacles) {
     if (obs.type === 'spike') {
       const sw = obs.w / obs.spikeCount;
@@ -656,14 +666,14 @@ The hack club challenge won't accept an exact copy. Here's what you can change, 
 - Double jump (track `jumpsLeft`, reset to 2 on landing).
 - Ducking. Press Down to halve `player.h` so you can slide under tall obstacles. Add some high-up obstacles to make this useful.
 - Pterodactyls! The real Chrome dino has flying enemies at higher scores. Spawn obstacles at different Y heights so the dino has to duck OR jump.
-- Particle effects when you die — spawn 10 tiny squares at the crash point that fly outward and fade.
+- Particle effects when you die, spawn 10 tiny squares at the crash point that fly outward and fade.
 
 **Go nuts:**
-- Parallax background (far mountains scroll slow, mid hills scroll medium, ground scrolls fast — actual depth).
+- Parallax background (far mountains scroll slow, mid hills scroll medium, ground scrolls fast, actual depth).
 - Sound effects. Web Audio API for jump boops and death thuds.
 - A start screen that shows "Press Space" instead of throwing you straight in.
 - Night mode that kicks in after a certain score, like the real Chrome dino.
 
 ---
 
-If something breaks: F12 → Console. Red error messages will tell you exactly which line died and why.
+If something breaks: F12, Console. Red error messages will tell you exactly which line died and why.
